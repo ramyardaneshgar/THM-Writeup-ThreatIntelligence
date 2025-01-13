@@ -118,4 +118,4 @@ Regular updates to IOC lists and Sigma rules help to maintain the relevance of d
 - **Layered Security**: Integrating firewall rules, DNS sinkholing, email filtering, and detection workflows provided a robust defense-in-depth approach.
 - **Tool Proficiency**: Mastery of Kibana, ElastAlert, and Sigma enhanced the SOC team’s ability to handle large-scale threats efficiently.
 - **Automation and Scalability**: Automating detection workflows with ElastAlert reduced response times and improved scalability for managing large datasets.
-- **Proactive Threat Mitigation**: Addressing known and emerging IOCs minimized the impact of adversarial actions and bolstered the organization’s overall security.
+- **Proactive Threat Mitigation**: Addressing known and emerging IOCs minimized the impact of adversarial actions.

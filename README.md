@@ -1,6 +1,6 @@
 # **THM-Writeup-ThreatIntelligence**
 
-This writeup details the practical implementation of IOC-based threat intelligence for Security Operations Center (SOC) operations, leveraging tools like Kibana, ElastAlert, Sigma, and DNS sinkholing. These techniques aim to enhance threat detection, prevention, and response capabilities.
+This writeup details the practical implementation of IOC-based threat intelligence for Security Operations Center (SOC) operations, leveraging tools like Kibana, ElastAlert, Sigma, and DNS sinkholing. 
 
 By **Ramyar Daneshgar**
 

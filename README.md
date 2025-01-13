@@ -109,7 +109,7 @@ I used Kibana queries to confirm the efficacy of implemented measures. For sinkh
 dns.answers.data: "0.0.0.0"
 ```
 
-Regular updates to IOC lists and Sigma rules help to maintain the relevance of detection mechanisms. Continuous tuning and validation ensured the SOC remained adaptive to evolving threats.
+Regular updates to IOC lists and Sigma rules help to maintain the relevance of detection mechanisms. 
 
 ---
 

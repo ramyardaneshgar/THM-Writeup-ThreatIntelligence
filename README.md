@@ -1,6 +1,6 @@
 # **THM Writeup - Threat Intelligence**
 
-This document outlines the precise implementation of IOC-based threat intelligence for SOC operations, focusing on the use of tools like Kibana, ElastAlert, Sigma, and DNS sinkholing. The writeup emphasizes technical configurations, queries, and workflows for improved threat detection, prevention, and response.
+This document outlines the precise implementation of IOC-based threat intelligence for SOC operations, focusing on the use of tools like Kibana, ElastAlert, Sigma, and DNS sinkholing. 
 
 **By Ramyar Daneshgar**
 
@@ -97,19 +97,19 @@ The rule was saved as `sinkhole.yaml` and executed with ElastAlert:
 elastalert --start 2023-02-16T00:00:00 --verbose 2>&1 | tee output.txt
 ```
 
-ElastAlert monitored logs for real-time matches and generated actionable alerts. The output was stored in `output.txt` for further analysis. This automated approach ensured rapid detection and response to suspicious activity.
+ElastAlert monitored logs for real-time matches and generated actionable alerts. The output was stored in `output.txt` for further analysis. This automated approach ensured faster detection and response to suspicious activity.
 
 ---
 
 ### Verification and Continuous Improvement
 
-The SOC team used Kibana queries to confirm the efficacy of implemented measures. For sinkholed domains, queries like the following validated traffic redirection:
+I used Kibana queries to confirm the efficacy of implemented measures. For sinkholed domains, queries like the following validated traffic redirection:
 
 ```kql
 dns.answers.data: "0.0.0.0"
 ```
 
-Regular updates to IOC lists and Sigma rules were emphasized to maintain the relevance of detection mechanisms. Continuous tuning and validation ensured the SOC remained adaptive to evolving threats.
+Regular updates to IOC lists and Sigma rules help to maintain the relevance of detection mechanisms. Continuous tuning and validation ensured the SOC remained adaptive to evolving threats.
 
 ---
 
@@ -118,4 +118,4 @@ Regular updates to IOC lists and Sigma rules were emphasized to maintain the rel
 - **Layered Security**: Integrating firewall rules, DNS sinkholing, email filtering, and detection workflows provided a robust defense-in-depth approach.
 - **Tool Proficiency**: Mastery of Kibana, ElastAlert, and Sigma enhanced the SOC team’s ability to handle large-scale threats efficiently.
 - **Automation and Scalability**: Automating detection workflows with ElastAlert reduced response times and improved scalability for managing large datasets.
-- **Proactive Threat Mitigation**: Addressing known and emerging IOCs minimized the impact of adversarial actions and bolstered the organization’s overall security posture.
+- **Proactive Threat Mitigation**: Addressing known and emerging IOCs minimized the impact of adversarial actions and bolstered the organization’s overall security.

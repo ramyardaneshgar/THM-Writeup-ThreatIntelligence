@@ -27,8 +27,6 @@ By Ramyar Daneshgar
   - Specified index: `filebeat-*`.
   - Defined the time range: `02/14/2023` to `02/17/2023`.
 
-#### Why It’s Important:
-This step demonstrates how to operationalize IOCs within a SIEM. Analysts must master querying techniques (KQL) to correlate IOCs with activity logs quickly and accurately.
 
 ---
 
@@ -81,7 +79,6 @@ This step demonstrates how to operationalize IOCs within a SIEM. Analysts must m
     dns.answers.data: "192.168.5.13"
     ```
 
-#### Why It’s Important:
 Proactively blocking malicious activity at multiple layers (network, email, DNS) minimizes the risk of compromise and reduces attack surfaces.
 
 ---
@@ -132,8 +129,6 @@ Proactively blocking malicious activity at multiple layers (network, email, DNS)
     dns.answers.data: "0.0.0.0"
     ```
 
-#### Why It’s Important:
-Detection bridges the gap between prevention and response. Automating alerts with ElastAlert ensures real-time visibility into malicious activity, enabling rapid incident response.
 
 ---
 
@@ -153,8 +148,6 @@ Detection bridges the gap between prevention and response. Automating alerts wit
     cat output.txt
     ```
 
-#### Why It’s Important:
-The conclusion reinforces the iterative nature of threat intelligence. SOC workflows must evolve to counter adversaries who continually refine their tactics.
 
 ---
 

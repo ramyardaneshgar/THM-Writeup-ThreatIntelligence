@@ -1,198 +1,121 @@
-# **THM-Writeup-ThreatIntelligence**
+# **THM Writeup - Threat Intelligence**
 
-This writeup details the practical implementation of IOC-based threat intelligence for Security Operations Center (SOC) operations, leveraging tools like Kibana, ElastAlert, Sigma, and DNS sinkholing. 
+This document outlines the precise implementation of IOC-based threat intelligence for SOC operations, focusing on the use of tools like Kibana, ElastAlert, Sigma, and DNS sinkholing. The writeup emphasizes technical configurations, queries, and workflows for improved threat detection, prevention, and response.
 
-By **Ramyar Daneshgar**
-
----
-
-## **Task 1: Threat Intelligence Feeds**
-
-### **Steps Taken**
-
-1. **Understand Types of Threat Intelligence**:
-   - Focused on **Technical Intelligence**, which involves the use of adversarial artifacts (e.g., IP addresses, hashes, domains, URLs) to detect and prevent attacks.
-   - This intelligence can be directly applied to defend against active threats, by analyzing these indicators to identify malicious activity in the network.
-
-2. **Differentiate Producers and Consumers**:
-   - **Producers**: Organizations or systems that gather and analyze threat intelligence from sources like honeypots, network traffic analysis, and incident reports.
-   - **Consumers**: Organizations that use the intelligence provided by producers to enhance their security posture. This includes applying IOCs to detection systems, patching vulnerabilities, and responding to incidents.
-
-3. **Consume IOC Feeds**:
-   - Queried IOC feeds through **KQL (Kibana Query Language)** to identify whether specific IP addresses had been involved in any malicious activity within the organization’s logs.
-   - This action involves searching through logs in the **ELK stack (Elasticsearch, Logstash, Kibana)** to identify matches between IOCs and events.
-
-### **Tools, Commands, and Configurations**
-
-- **Kibana (Part of ELK Stack)**:
-  - Logged into Kibana at `http://<Machine_IP>` using the provided credentials: `elastic:elastic`.
-  - Used **KQL** to query the `filebeat-*` index for known malicious IPs:
-    ```kql
-    destination.ip: ("117.213.7.8" OR "119.180.220.224" OR "144.202.127.44")
-    ```
-  - Defined a time range of `02/14/2023` to `02/17/2023` to focus on relevant events.
-
-### **Technical Impact**
-
-- **Enhanced Threat Visibility**: Using Kibana’s querying capabilities, we mapped IOCs to system events, giving SOC teams a comprehensive view of ongoing malicious activity.
-- **Operationalizing Threat Intelligence**: By distinguishing between producers and consumers, we set a clear framework for how threat intelligence should flow through SOC operations, ensuring it is actionable.
-- **Efficient Detection Coverage**: With KQL and Kibana, we ensured that IOC-based indicators were properly correlated with log data, enhancing threat visibility across the network.
+**By Ramyar Daneshgar**
 
 ---
 
-## **Task 2: Intelligence-Driven Prevention**
+### IOC-Based Threat Intelligence Ingestion
 
-### **Steps Taken**
+The initial step involved ingesting IOCs into the ELK stack, specifically leveraging Kibana for log analysis. By querying the `filebeat-*` index with known malicious indicators such as `117.213.7.8` and `119.180.220.224`, the SOC team correlated network activity with identified threats. Using KQL, queries like the following were executed to detect potential compromises:
 
-1. **IP Blocking via Firewalls**:
-   - Added malicious IPs to a blocklist and configured firewalls to deny inbound and outbound traffic from these addresses.
-   - This measure prevents attackers from accessing or exfiltrating data through compromised IPs.
+```kql
+destination.ip: ("117.213.7.8" OR "119.180.220.224")
+```
 
-2. **Domain Blocking via Email Gateways**:
-   - Configured email filters to block incoming communications from known malicious domains.
-   - This effectively reduces the risk of phishing and malware delivered via email.
-
-3. **DNS Sinkholing**:
-   - Redirected DNS queries for known malicious domains to a "sinkhole" IP (e.g., `192.168.5.13`), disrupting adversarial C2 communications and preventing further exploitation.
-
-### **Tools, Commands, and Configurations**
-
-- **IP Blocking via Firewall**:
-  - Added firewall rules to block specific IPs:
-    ```bash
-    iptables -A INPUT -s 117.213.7.8 -j DROP
-    iptables -A OUTPUT -d 117.213.7.8 -j DROP
-    iptables-save > /etc/iptables/rules.v4
-    ```
-  - Verified the rules:
-    ```bash
-    iptables -L -v
-    ```
-
-- **Domain Blocking via Email Gateway**:
-  - Populated blocklists to filter email traffic:
-    ```plaintext
-    blocked_domains.txt:
-    agrosaoxe.info
-    malspamdomain.com
-    ```
-  - Applied blocklist via Postfix:
-    ```bash
-    postmap hash:/etc/postfix/blocked_domains
-    systemctl restart postfix
-    ```
-
-- **DNS Sinkholing**:
-  - Edited the `/etc/hosts` file to redirect malicious queries:
-    ```bash
-    echo "192.168.5.13 agrosaoxe.info" >> /etc/hosts
-    ```
-  - Queried DNS logs to verify the sinkholing:
-    ```kql
-    dns.question.name: "agrosaoxe.info"
-    dns.answers.data: "192.168.5.13"
-    ```
-
-### **Technical Impact**
-
-- **Proactive Threat Mitigation**: The firewall rules blocked ingress and egress traffic from known malicious IPs, limiting exposure to exploit attempts.
-- **Reduced Email-Based Attack Surface**: Filtering malicious domains at the email gateway minimized the risk of phishing attacks and malware delivery via email.
-- **Disrupted Adversary Command-and-Control**: DNS sinkholing prevented adversaries from reaching their infrastructure, significantly disrupting their ability to execute attacks.
+The scope of the search was limited to a specific timeframe, between February 14 and February 17, 2023, ensuring precise event analysis. This process provided real-time visibility into malicious activity and enabled the identification of potential compromise points.
 
 ---
 
-## **Task 3: Intelligence-Driven Detection**
+### Firewall-Based IP Blocking
 
-### **Steps Taken**
+To prevent adversarial communication, firewall rules were applied to block malicious IPs. Using iptables, the following rules were configured:
 
-1. **Use Sigma Rules**:
-   - Converted Sigma detection rules into **ElastAlert**-compatible YAML configuration to automate detection of malicious activity.
-   - These rules help identify traffic to sinkholed domains, a strong indicator of compromised systems.
+```bash
+iptables -A INPUT -s 117.213.7.8 -j DROP
+iptables -A OUTPUT -d 117.213.7.8 -j DROP
+iptables-save > /etc/iptables/rules.v4
+```
 
-2. **Run Detection Queries in Kibana**:
-   - Queried DNS logs for connections to sinkholed domains to detect active infections or compromised hosts.
+The rules ensured that traffic to and from the specified IPs was denied at the network level. Verification was conducted with:
 
-3. **Analyze Alerts**:
-   - Used **ElastAlert** to generate automated alerts based on matching IOCs (like IP addresses or DNS queries) in real-time.
-   - Analyzed the alerts for patterns of suspicious activity that require further investigation.
+```bash
+iptables -L -v
+```
 
-### **Tools, Commands, and Configurations**
-
-- **Sigma Rule Conversion**:
-  - Translated Sigma rules into ElastAlert YAML using **Uncoder.io**:
-    ```yaml
-    alert:
-      - debug
-    description: "DNS Sinkhole Detection"
-    index: filebeat-*
-    filter:
-      - query_string:
-          query: dns.resolved_ip: "0.0.0.0"
-    ```
-  - Saved the rule as `sinkhole.yaml`.
-
-- **ElastAlert Configuration**:
-  - Navigated to the ElastAlert directory and verified the rule configuration:
-    ```bash
-    cd ~/elastalert/rules
-    elastalert-test-rule --config config.yaml sinkhole.yaml
-    ```
-  - Ran ElastAlert to start monitoring for IOC matches:
-    ```bash
-    elastalert --start 2023-02-16T00:00:00 --verbose 2>&1 | tee output.txt
-    ```
-
-- **Kibana Query**:
-  - Queried for DNS sinkhole indicators:
-    ```kql
-    dns.answers.data: "0.0.0.0"
-    ```
-
-### **Technical Impact**
-
-- **Automated Detection**: By translating Sigma rules into ElastAlert, detection capabilities were automated, reducing response time to potential threats.
-- **Improved Threat Correlation**: Real-time detection of sinkholed domains allowed for faster identification of infected systems and malicious traffic patterns.
-- **Enhanced SOC Response**: ElastAlert enabled the SOC to generate actionable alerts, streamlining incident response workflows and reducing the time it takes to address identified threats.
+By blocking ingress and egress traffic from malicious sources, this measure limited the attacker’s ability to establish or maintain communication within the network.
 
 ---
 
-## **Task 4: Conclusion**
+### DNS Sinkholing
 
-### **Steps Taken**
+DNS sinkholing was implemented to disrupt command-and-control (C2) communications. Malicious domains, such as `agrosaoxe.info`, were redirected to a controlled sinkhole IP (`192.168.5.13`). This was achieved by appending entries to the `/etc/hosts` file:
 
-1. **Summarized Learnings**:
-   - Reinforced the critical roles of threat intelligence producers and consumers in enhancing an organization’s security posture.
-   - Reviewed detection and prevention techniques and their practical applications.
+```bash
+echo "192.168.5.13 agrosaoxe.info" >> /etc/hosts
+```
 
-2. **Highlighted Continuous Improvement**:
-   - Emphasized the need for SOC teams to continuously update IOC lists, refine Sigma rules, and evolve detection mechanisms to stay ahead of adversaries.
+Kibana was used to validate the sinkhole's effectiveness, querying for redirected traffic:
 
-### **Tools and Commands**
+```kql
+dns.question.name: "agrosaoxe.info" AND dns.answers.data: "192.168.5.13"
+```
 
-- **Log Analysis**:
-  - Reviewed ElastAlert output to identify suspicious domains:
-    ```bash
-    cat output.txt
-    ```
-
-### **Technical Impact**
-
-- **Adaptive Security Posture**: Regularly updating detection rules and IOC feeds ensures SOC defenses stay relevant against emerging threats.
-- **Operational Efficiency**: By automating the detection process, SOC teams can reduce manual labor and focus on high-priority incidents.
-- **Collaborative Threat Intelligence**: Understanding the roles of both producers and consumers allows for effective collaboration across the cybersecurity ecosystem, strengthening overall defense mechanisms.
+This approach effectively neutralized adversary communication channels, halting malware operations that relied on external infrastructure.
 
 ---
 
-### **Lessons Learned**
+### Email Filtering
 
-1. **Defense-in-Depth Strategy**:
-   - Combining prevention, detection, and response measures creates a robust multi-layered security posture, minimizing exposure to potential threats.
+To mitigate phishing and spam attacks, malicious domains were blocklisted in the organization’s email gateway. The blocklist was configured using Postfix:
 
-2. **Tools**:
-   - Mastery of tools like Kibana, ElastAlert, and Sigma is essential for SOC analysts to efficiently manage real-world threat intelligence and automate detection processes.
+```plaintext
+blocked_domains.txt:
+agrosaoxe.info
+malspamdomain.com
+```
 
-3. **Scalable Automation**:
-   - Automating detection and alerting workflows with ElastAlert and Sigma rules enhances scalability, allowing the SOC to handle increased data and threat volume without additional resources.
+The list was applied with the following commands:
 
-4. **Proactive Threat Management**:
-   - By addressing both known IOCs and emerging adversarial tactics, organizations can preemptively disrupt attack attempts.
+```bash
+postmap hash:/etc/postfix/blocked_domains
+systemctl restart postfix
+```
+
+This filtering process significantly reduced the risk of email-based attacks, particularly those leveraging social engineering techniques.
+
+---
+
+### Sigma Rule Integration and ElastAlert
+
+Automated detection workflows were implemented by converting Sigma rules into ElastAlert-compatible YAML configurations. For example:
+
+```yaml
+alert:
+  - debug
+description: "Detect Sinkholed Domains"
+index: filebeat-*
+filter:
+  - query_string:
+      query: dns.resolved_ip: "0.0.0.0"
+```
+
+The rule was saved as `sinkhole.yaml` and executed with ElastAlert:
+
+```bash
+elastalert --start 2023-02-16T00:00:00 --verbose 2>&1 | tee output.txt
+```
+
+ElastAlert monitored logs for real-time matches and generated actionable alerts. The output was stored in `output.txt` for further analysis. This automated approach ensured rapid detection and response to suspicious activity.
+
+---
+
+### Verification and Continuous Improvement
+
+The SOC team used Kibana queries to confirm the efficacy of implemented measures. For sinkholed domains, queries like the following validated traffic redirection:
+
+```kql
+dns.answers.data: "0.0.0.0"
+```
+
+Regular updates to IOC lists and Sigma rules were emphasized to maintain the relevance of detection mechanisms. Continuous tuning and validation ensured the SOC remained adaptive to evolving threats.
+
+---
+
+### Lessons Learned
+
+- **Layered Security**: Integrating firewall rules, DNS sinkholing, email filtering, and detection workflows provided a robust defense-in-depth approach.
+- **Tool Proficiency**: Mastery of Kibana, ElastAlert, and Sigma enhanced the SOC team’s ability to handle large-scale threats efficiently.
+- **Automation and Scalability**: Automating detection workflows with ElastAlert reduced response times and improved scalability for managing large datasets.
+- **Proactive Threat Mitigation**: Addressing known and emerging IOCs minimized the impact of adversarial actions and bolstered the organization’s overall security posture.
